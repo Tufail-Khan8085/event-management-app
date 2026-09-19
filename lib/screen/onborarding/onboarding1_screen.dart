@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../auth/login_screen.dart';
-import 'onboarding2_screen.dart';
+import 'onboarding2_screen.dart'; // OnboardingScreen2 import
 
 class OnboardingScreen extends StatelessWidget {
-  const OnboardingScreen({super.key});
+  final PageController? pageController; // Nullable (Optional) banaya
+
+  const OnboardingScreen({
+    super.key,
+    this.pageController, // 'required' hata diya
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +25,7 @@ class OnboardingScreen extends StatelessWidget {
             child: Opacity(
               opacity: isDark ? 0.05 : 1.0,
               child: Image.asset(
-                'assets/images/my_bg.png', // <-- Yahan apni background image ka path aur name likhein
+                'assets/images/my_bg.png',
                 fit: BoxFit.cover,
               ),
             ),
@@ -55,38 +60,49 @@ class OnboardingScreen extends StatelessWidget {
                 const SizedBox(height: 20),
 
                 // Main Onboarding Image Path
-                Image.asset(
-                  'assets/images/location (2).png', // <-- Main picture path
-                  width: 320,
-                  height: 280,
-                  fit: BoxFit.contain,
+                Transform.translate(
+                  offset: const Offset(0, -50),
+                  child: Image.asset(
+                    'assets/images/Rectangle.png',
+                    width: 546,
+                    height: 430,
+                    fit: BoxFit.contain,
+                  ),
                 ),
 
                 const SizedBox(height: 25),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 30),
-                  child: Text(
-                    "Discover What's\nHappening Nearby",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? AppColors.white : AppColors.black,
-                      height: 1.2,
+                Transform.translate(
+                  offset: const Offset(0, -100),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 30),
+                    child: Text(
+                      "Discover What's\nHappening Nearby",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? AppColors.white : AppColors.black,
+                        height: 1.2,
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 18),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 35),
-                  child: Text(
-                    "Find real events from verified community groups and clubs — all in one place.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: isDark ? AppColors.white.withOpacity(0.7) : AppColors.grey,
-                      height: 1.5,
-                      fontWeight: FontWeight.w400,
+                Transform.translate(
+                  offset: const Offset(0, -100),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 35),
+                    child: Text(
+                      "Find real events from verified community groups \n and clubs — all in one place.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isDark
+                            ? AppColors.white.withOpacity(0.7)
+                            : AppColors.grey,
+                        height: 1.3,
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
                   ),
                 ),
@@ -130,10 +146,19 @@ class OnboardingScreen extends StatelessWidget {
                     height: 55,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const OnboardingScreen2()),
-                        );
+                        if (pageController != null) {
+                          pageController!.nextPage(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const OnboardingScreen2(),
+                            ),
+                          );
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,

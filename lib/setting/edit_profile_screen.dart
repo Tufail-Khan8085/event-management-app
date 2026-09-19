@@ -1,9 +1,68 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class EditProfileScreen extends StatelessWidget {
+class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
 
   @override
+  State<EditProfileScreen> createState() => _EditProfileScreenState();
+}
+
+class _EditProfileScreenState extends State<EditProfileScreen> {
+  final User? user = FirebaseAuth.instance.currentUser;
+
+  final TextEditingController nameController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    loadUserData();
+  }
+
+  Future<void> loadUserData() async {
+    if (user == null) return;
+
+    final doc = await FirebaseFirestore.instance
+        .collection("users")
+        .doc(user!.uid)
+        .get();
+
+    if (doc.exists) {
+      final data = doc.data();
+
+      if (data != null && data.containsKey("name")) {
+        nameController.text = data["name"];
+      }
+    }
+  }
+
+  Future<void> saveProfile() async {
+    if (user == null) return;
+
+    try {
+      await FirebaseFirestore.instance
+          .collection("users")
+          .doc(user!.uid)
+          .set({
+        "name": nameController.text.trim(),
+      }, SetOptions(merge: true));
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Profile Updated Successfully"),
+        ),
+      );
+
+      Navigator.pop(context);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+        ),
+      );
+    }
+  }
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -105,6 +164,7 @@ class EditProfileScreen extends StatelessWidget {
 
             /// Username Input Field
             TextField(
+              controller: nameController,
               style: TextStyle(color: isDark ? Colors.white : Colors.black),
               decoration: InputDecoration(
                 hintText: "Mack_tor",
@@ -136,7 +196,9 @@ class EditProfileScreen extends StatelessWidget {
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () async {
+                    await saveProfile();
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFD32F2F),
                     shape: RoundedRectangleBorder(

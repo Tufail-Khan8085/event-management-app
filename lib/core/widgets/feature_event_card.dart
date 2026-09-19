@@ -1,10 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:event/screens/event/event_details_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../user/screen/event/event_detail_screen.dart';
 
 class FeatureEventCard extends StatefulWidget {
-  const FeatureEventCard({super.key});
+  final String title;
+  final String date;
+  final String time;
+  final String location;
+  final String detail;
+
+  const FeatureEventCard({
+    super.key,
+    required this.title,
+    required this.date,
+    required this.time,
+    required this.location,
+    required this.detail,
+  });
 
   @override
   State<FeatureEventCard> createState() => _FeatureEventCardState();
@@ -12,6 +25,23 @@ class FeatureEventCard extends StatefulWidget {
 
 class _FeatureEventCardState extends State<FeatureEventCard> {
   bool isFavourite = false;
+
+  Future<void> _addToFavourite() async {
+    await FirebaseFirestore.instance.collection("favorites").add({
+      "title": widget.title,
+      "date": widget.date,
+      "time": widget.time,
+      "location": widget.location,
+      "detail": widget.detail,
+      "createdAt": Timestamp.now(),
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Added to Favourite ❤️"),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +53,13 @@ class _FeatureEventCardState extends State<FeatureEventCard> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => const EventDetailsScreen(),
+            builder: (_) => EventDetailsScreen(
+              title: widget.title,
+              date: widget.date,
+              time: widget.time,
+              location: widget.location,
+              detail: widget.detail, documentId: '',
+            ),
           ),
         );
       },
@@ -54,20 +90,25 @@ class _FeatureEventCardState extends State<FeatureEventCard> {
                     topRight: Radius.circular(18),
                   ),
                   child: Image.asset(
-                    "assets/images/event1.png",
+                    "assets/images/Rectangle 4.png",
                     height: 190,
                     width: double.infinity,
                     fit: BoxFit.cover,
                   ),
                 ),
+
                 Positioned(
                   top: 15,
                   right: 15,
                   child: GestureDetector(
-                    onTap: () {
+                    onTap: () async {
                       setState(() {
                         isFavourite = !isFavourite;
                       });
+
+                      if (isFavourite) {
+                        await _addToFavourite();
+                      }
                     },
                     child: Container(
                       width: 40,
@@ -77,7 +118,9 @@ class _FeatureEventCardState extends State<FeatureEventCard> {
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
-                        isFavourite ? Icons.favorite : Icons.favorite_border,
+                        isFavourite
+                            ? Icons.favorite
+                            : Icons.favorite_border,
                         color: Colors.red,
                       ),
                     ),
@@ -85,21 +128,25 @@ class _FeatureEventCardState extends State<FeatureEventCard> {
                 ),
               ],
             ),
+
             const SizedBox(height: 15),
+
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Tech Meetup",
+                    widget.title,
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: theme.textTheme.headlineMedium?.color,
                     ),
                   ),
+
                   const SizedBox(height: 10),
+
                   Row(
                     children: [
                       const Icon(
@@ -110,16 +157,20 @@ class _FeatureEventCardState extends State<FeatureEventCard> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          "Wed, 5 Nov 2025 • 2:00 PM",
+                          "${widget.date} • ${widget.time}",
                           style: TextStyle(
-                            color: isDark ? Colors.white70 : Colors.grey,
+                            color: isDark
+                                ? Colors.white70
+                                : Colors.grey,
                             fontSize: 14,
                           ),
                         ),
                       ),
                     ],
                   ),
+
                   const SizedBox(height: 10),
+
                   Row(
                     children: [
                       const Icon(
@@ -130,28 +181,30 @@ class _FeatureEventCardState extends State<FeatureEventCard> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          "2464 Royal Ln. Mesa, New Jersey 45463",
+                          widget.location,
                           style: TextStyle(
-                            color: isDark ? Colors.white70 : Colors.grey,
+                            color: isDark
+                                ? Colors.white70
+                                : Colors.grey,
                             fontSize: 14,
                           ),
                         ),
                       ),
                     ],
                   ),
+
                   const SizedBox(height: 18),
                 ],
               ),
             ),
+
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton.icon(
-                  onPressed: () {
-                    // TODO: Add to Calendar Logic
-                  },
+                  onPressed: () {},
                   icon: const Icon(
                     Icons.calendar_month,
                     color: Colors.white,

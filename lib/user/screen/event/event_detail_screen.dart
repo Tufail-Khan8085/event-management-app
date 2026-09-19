@@ -1,10 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:event/core/widgets/custom_button.dart';
-
-import '../../../core/widgets/custom_button.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../calendar/my_calendar_screen.dart';
+import 'edit_event_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class EventDetailsScreen extends StatelessWidget {
-  const EventDetailsScreen({super.key});
+
+  final String title;
+  final String date;
+  final String time;
+  final String location;
+  final String detail;
+  final String documentId;
+
+  const EventDetailsScreen({
+    super.key,
+    required this.title,
+    required this.date,
+    required this.time,
+    required this.location,
+    required this.detail,
+    required this.documentId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +38,7 @@ class EventDetailsScreen extends StatelessWidget {
               children: [
                 // Event Image
                 Image.asset(
-                  "assets/images/event1.png",
+                  "assets/images/Rectangle 555.png",
                   width: double.infinity,
                   height: 400,
                   fit: BoxFit.cover,
@@ -70,7 +88,7 @@ class EventDetailsScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Made in Melanin! Black History Month Social.....",
+                    title,
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -85,7 +103,7 @@ class EventDetailsScreen extends StatelessWidget {
                       Icon(Icons.calendar_month, color: isDark ? Colors.white70 : Colors.black, size: 20),
                       const SizedBox(width: 12),
                       Text(
-                        "28 October 2025 6:00pm GMT",
+                        "$date  $time",
                         style: TextStyle(
                           fontSize: 16,
                           color: theme.textTheme.bodyLarge?.color,
@@ -102,7 +120,7 @@ class EventDetailsScreen extends StatelessWidget {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          "1901 Thornridge Cir. Shiloh, Hawaii 81063",
+                          location,
                           style: TextStyle(
                             fontSize: 16,
                             color: theme.textTheme.bodyLarge?.color,
@@ -131,8 +149,8 @@ class EventDetailsScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05)),
                     ),
-                    child: Text(
-                      "Lorem ipsum dolor sit amet consectetur. Sed volutpat euismod enim accumsan quam posuere. Tortor pretium lorem dui metus amet in sed. Sodales volutpat maecenas et quisque nibh ult Enim fames quam turpis pellentesque vivamus massa.Lorem ipsum dolor sit amet consectetur. Sed volutpat euismod enim accumsan",
+                    child:Text(
+                      detail,
                       style: TextStyle(
                         fontSize: 14,
                         color: isDark ? Colors.white70 : Colors.grey,
@@ -145,8 +163,69 @@ class EventDetailsScreen extends StatelessWidget {
                   // Add to Calendar Button
                   CustomButton(
                     text: "Add to my calendar",
+                    onPressed: () async {
+                      await FirebaseFirestore.instance.collection("my_calendar").add({
+                        "userId": FirebaseAuth.instance.currentUser!.uid,
+                        "title": title,
+                        "date": date,
+                        "time": time,
+                        "location": location,
+                        "detail": detail,
+                        "createdAt": Timestamp.now(),
+                      });
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Event added to My Calendar"),
+                        ),
+                      );
+
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const MyCalendarScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 15),
+                  CustomButton(
+                    text: "Edit Event",
                     onPressed: () {
-                      // TODO: Add to Calendar Logic
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => EditEventScreen(
+                            documentId: documentId,
+                            title: title,
+                            date: date,
+                            time: time,
+                            location: location,
+                            detail: detail,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+
+                  const SizedBox(height: 15),
+                  CustomButton(
+                    text: "Delete Event",
+                    onPressed: () async {
+                      await FirebaseFirestore.instance
+                          .collection("events")
+                          .doc(documentId)
+                          .delete();
+
+                      if (context.mounted) {
+                        Navigator.pop(context);
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Event Deleted Successfully"),
+                          ),
+                        );
+                      }
                     },
                   ),
                   const SizedBox(height: 20),

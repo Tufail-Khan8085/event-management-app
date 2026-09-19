@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:event/core/constants/app_images.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class FavouriteScreen extends StatelessWidget {
   const FavouriteScreen({super.key});
@@ -37,11 +39,41 @@ class FavouriteScreen extends StatelessWidget {
               ),
             ),
           ),
-          ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            itemCount: 2,
-            itemBuilder: (context, index) {
-              return const FavouriteEventCard();
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection("favorites")
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+
+              final events = snapshot.data!.docs;
+
+              if (events.isEmpty) {
+                return const Center(
+                  child: Text("No Favourite Events"),
+                );
+              }
+
+              return ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                itemCount: events.length,
+                itemBuilder: (context, index) {
+                  final event = events[index];
+
+                  return FavouriteEventCard(
+                    documentId: event.id,
+                    title: event["title"] ?? "",
+                    date: event["date"] ?? "",
+                    time: event["time"] ?? "",
+                    location: event["location"] ?? "",
+                    detail: event["detail"] ?? "",
+                  );
+                },
+              );
             },
           ),
         ],
@@ -51,8 +83,22 @@ class FavouriteScreen extends StatelessWidget {
 }
 
 class FavouriteEventCard extends StatelessWidget {
-  const FavouriteEventCard({super.key});
+  final String title;
+  final String date;
+  final String time;
+  final String location;
+  final String detail;
+  final String documentId;
 
+  const FavouriteEventCard({
+    super.key,
+    required this.title,
+    required this.date,
+    required this.time,
+    required this.location,
+    required this.detail,
+    required this.documentId,
+  });
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -100,7 +146,18 @@ class FavouriteEventCard extends StatelessWidget {
                 top: 15,
                 right: 15,
                 child: GestureDetector(
-                  onTap: () {},
+                  onTap: () async {
+                    await FirebaseFirestore.instance
+                        .collection("favorites")
+                        .doc(documentId)
+                        .delete();
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Removed from Favourite"),
+                      ),
+                    );
+                  },
                   child: Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
@@ -123,7 +180,7 @@ class FavouriteEventCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Made in Melanin! Black History Month Social.....",
+                  title,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -136,8 +193,11 @@ class FavouriteEventCard extends StatelessWidget {
                     Icon(Icons.calendar_month, color: isDark ? Colors.white70 : Colors.black, size: 18),
                     const SizedBox(width: 10),
                     Text(
-                      "28 October 2025 6:00pm GMT",
-                      style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Colors.black),
+                      "$date  $time",
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isDark ? Colors.white70 : Colors.black,
+                      ),
                     ),
                   ],
                 ),
@@ -146,10 +206,11 @@ class FavouriteEventCard extends StatelessWidget {
                   children: [
                     Icon(Icons.location_on, color: isDark ? Colors.white70 : Colors.black, size: 18),
                     const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        "1901 Thornridge Cir. Shiloh, Hawaii 81063",
-                        style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Colors.black),
+                    Text(
+                      location,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isDark ? Colors.white70 : Colors.black,
                       ),
                     ),
                   ],
@@ -159,7 +220,23 @@ class FavouriteEventCard extends StatelessWidget {
                   width: double.infinity,
                   height: 52,
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () async {
+                      await FirebaseFirestore.instance.collection("my_calendar").add({
+                        "title": title,
+                        "date": date,
+                        "time": time,
+                        "location": location,
+                        "detail": detail,
+                        "userId": FirebaseAuth.instance.currentUser!.uid,
+                        "createdAt": Timestamp.now(),
+                      });
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Added to My Calendar"),
+                        ),
+                      );
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xffD32F2F),
                       shape: RoundedRectangleBorder(

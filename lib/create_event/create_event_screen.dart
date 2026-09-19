@@ -4,6 +4,8 @@ import 'package:event/core/widgets/custom_textfield.dart';
 import 'package:event/core/widgets/image_placeholder.dart';
 import 'package:intl/intl.dart';
 import '../admin/vote/vote_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class CreateEventScreen extends StatefulWidget {
   const CreateEventScreen({super.key});
@@ -15,6 +17,9 @@ class CreateEventScreen extends StatefulWidget {
 class _CreateEventScreenState extends State<CreateEventScreen> {
   final TextEditingController dateController = TextEditingController();
   final TextEditingController timeController = TextEditingController();
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController locationController = TextEditingController();
+  final TextEditingController detailController = TextEditingController();
 
   Future<void> _selectDate(BuildContext context) async {
     final theme = Theme.of(context);
@@ -63,16 +68,63 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       });
     }
   }
+  Future<void> createEvent() async {
+    if (titleController.text.isEmpty ||
+        locationController.text.isEmpty ||
+        detailController.text.isEmpty ||
+        dateController.text.isEmpty ||
+        timeController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please fill all fields"),
+        ),
+      );
+      return;
+    }
+    final user = FirebaseAuth.instance.currentUser;
 
+    if (user == null) return;
+
+    try {
+      await FirebaseFirestore.instance.collection("events").add({
+        "title": titleController.text.trim(),
+        "location": locationController.text.trim(),
+        "detail": detailController.text.trim(),
+        "date": dateController.text.trim(),
+        "time": timeController.text.trim(),
+        "userId": user.uid,
+        "createdAt": FieldValue.serverTimestamp(),
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Event Created Successfully"),
+        ),
+      );
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => VoteScreen(),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+        ),
+      );
+    }
+  }
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: theme.appBarTheme.backgroundColor,
+        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black),
@@ -98,7 +150,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 10),
-                    const CustomTextField(
+                    CustomTextField(
+                      controller: titleController,
                       label: "Title",
                       hintText: "Made in Melanin! Black History Month Social",
                     ),
@@ -129,12 +182,14 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                       ],
                     ),
                     const SizedBox(height: 20),
-                    const CustomTextField(
+                    CustomTextField(
+                      controller: locationController,
                       label: "Location",
                       hintText: "1901 Thornridge Cir. Shiloh, Hawaii 81063",
                     ),
                     const SizedBox(height: 20),
-                    const CustomTextField(
+                    CustomTextField(
+                      controller: detailController,
                       label: "Event Detail",
                       hintText:
                       "Lorem ipsum   Non habitasse sed feugiat aliquet lorem dui. Sodales volutpat maecenas et quisque nibh ultrices in nulla. Enim fames quam turpis pellentesque vivamus massa.Lorem ipsum dolor sit amet consectetur. Sed volutpat euismod enim accumsan",
@@ -142,7 +197,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                       maxLines: 8,
                     ),
                     const SizedBox(height: 20),
-                    const ImagePlaceholder(label: "Upload Image"),
+                    ImagePlaceholder(label: "Upload Image"),
                     const SizedBox(height: 30),
                   ],
                 ),
@@ -152,11 +207,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               padding: const EdgeInsets.all(20),
               child: CustomButton(
                 text: "Create Event",
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => VoteScreen()),
-                  );
+                onPressed: () async {
+                  await createEvent();
                 },
               ),
             ),

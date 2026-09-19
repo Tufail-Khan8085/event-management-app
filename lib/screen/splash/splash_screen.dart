@@ -15,12 +15,18 @@ class _SplashScreenState extends State<SplashScreen> {
 
     // 3 seconds ka timer
     Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const OnboardingScreen()),
-        );
-      }
+      if (!mounted) return;
+
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const OnboardingScreen(),
+            ),
+          );
+        }
+      });
     });
   }
 

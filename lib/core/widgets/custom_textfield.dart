@@ -46,27 +46,59 @@ class CustomTextField extends StatelessWidget {
           readOnly: readOnly,
           onTap: onTap,
           maxLines: isMultiline ? (maxLines ?? 8) : 1,
-          style: TextStyle(fontSize: 14, color: isDark ? Colors.white : Colors.black),
+
+          // 1. Text saaf dikhega (Transparent nahi hoga)
+          style: TextStyle(
+            fontSize: 14,
+            color: isDark ? Colors.white : Colors.black,
+          ),
+
           decoration: InputDecoration(
             hintText: hintText,
-            hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.grey.shade400, fontSize: 14),
+
+            // 2. Sample text (Hint) halka grey saaf dikhega
+            hintStyle: TextStyle(
+              color: isDark ? Colors.white38 : Colors.grey.shade400,
+              fontSize: 14,
+            ),
+
             suffixIcon: suffixIcon != null
-                ? Icon(suffixIcon, color: isDark ? Colors.white60 : Colors.grey.shade600, size: 20)
+                ? Icon(
+              suffixIcon,
+              color: isDark ? Colors.white60 : Colors.grey.shade600,
+              size: 20,
+            )
                 : null,
+
+            // 3. Dabbe (Box) ka background transparent rahega
             filled: true,
-            fillColor: isDark ? theme.cardColor : Colors.white,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            fillColor: Colors.transparent,
+
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
+
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: isDark ? const BorderSide(color: Colors.white12) : BorderSide(color: Colors.grey.shade300),
+              borderSide: BorderSide(
+                color: Colors.grey.shade300,
+              ),
             ),
+
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: isDark ? const BorderSide(color: Colors.white12) : BorderSide(color: Colors.grey.shade300),
+              borderSide: BorderSide(
+                color: Colors.grey.shade300,
+              ),
             ),
+
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: isDark ? Colors.red : Colors.black, width: 1),
+              borderSide: const BorderSide(
+                color: Colors.black,
+                width: 1,
+              ),
             ),
           ),
         ),

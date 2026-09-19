@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:event/core/widgets/custom_button.dart';
 import 'package:event/core/widgets/custom_textfield.dart';
 import 'package:event/core/widgets/image_placeholder.dart';
-import 'package:event/screens/navigation/main_navigation.dart';
-
 import '../../navigation/main_navigation.dart';
 
 class VoteScreen extends StatelessWidget {
@@ -11,22 +9,19 @@ class VoteScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: Colors.white, // Pure white background
       appBar: AppBar(
-        backgroundColor: theme.appBarTheme.backgroundColor,
+        backgroundColor: Colors.white, // Pure white appbar
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
+        title: const Text(
           "Vote",
           style: TextStyle(
-            color: isDark ? Colors.white : Colors.black,
+            color: Colors.black,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -48,12 +43,12 @@ class VoteScreen extends StatelessWidget {
                       hintText: "Made in Melanin! Black History Month Social",
                     ),
                     const SizedBox(height: 25),
-                    Text(
+                    const Text(
                       "Options",
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black,
+                        color: Colors.black,
                       ),
                     ),
                     const SizedBox(height: 12),

@@ -1,12 +1,15 @@
-import 'package:event/screen/splash/splash_screen.dart';
-import 'package:event/setting/settings_screen.dart';
-import 'package:event/user/screen/community/community_screen.dart';
-import 'package:event/user/screen/favourite/favorite_screen.dart';
-import 'package:event/user/screen/features/feature_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:event/screens/splash/splash_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'screen/splash/splash_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   runApp(const MyApp());
 }
 

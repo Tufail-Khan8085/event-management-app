@@ -3,7 +3,12 @@ import '../../core/constants/app_colors.dart';
 import '../auth/login_screen.dart';
 
 class OnboardingScreen3 extends StatelessWidget {
-  const OnboardingScreen3({super.key});
+  final PageController? pageController; // Parent PageView ke liye optional controller
+
+  const OnboardingScreen3({
+    super.key,
+    this.pageController,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -14,12 +19,12 @@ class OnboardingScreen3 extends StatelessWidget {
       backgroundColor: theme.scaffoldBackgroundColor,
       body: Stack(
         children: [
-          // Background Image Path Updated
+          // Background Image
           Positioned.fill(
             child: Opacity(
               opacity: isDark ? 0.05 : 1.0,
               child: Image.asset(
-                'assets/images/my_bg.png', // <-- Background image path
+                'assets/images/my_bg.png',
                 fit: BoxFit.cover,
               ),
             ),
@@ -53,39 +58,49 @@ class OnboardingScreen3 extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
 
-                // Main Onboarding 3 Image Path Updated
-                Image.asset(
-                  'assets/images/Online reminder app.png', // <-- Main picture path
-                  width: 320,
-                  height: 280,
-                  fit: BoxFit.contain,
+                // Main Onboarding 3 Image
+                Center(
+                  child: Image.asset(
+                    'assets/images/Online reminder app.png',
+                    width: 380,
+                    height: 330,
+                    fit: BoxFit.contain,
+                  ),
                 ),
 
                 const SizedBox(height: 25),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 30),
-                  child: Text(
-                    "Shape the Next \n Big Event",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? AppColors.white : AppColors.black,
-                      height: 1.2,
+                Transform.translate(
+                  offset: const Offset(0, 30),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 30),
+                    child: Text(
+                      "Shape the Next \n Big Event",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? AppColors.white : AppColors.black,
+                        height: 1.2,
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 18),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 35),
-                  child: Text(
-                    "Vote on new event ideas, favorite your picks, and never miss what matters most.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: isDark ? AppColors.white.withOpacity(0.7) : AppColors.grey,
-                      height: 1.5,
-                      fontWeight: FontWeight.w400,
+                Transform.translate(
+                  offset: const Offset(0, 30),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 35),
+                    child: Text(
+                      "Vote on new event ideas, favorite your picks, and\nnever miss what matters most.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: isDark
+                            ? AppColors.white.withOpacity(0.7)
+                            : AppColors.grey,
+                        height: 1.5,
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
                   ),
                 ),
@@ -129,6 +144,7 @@ class OnboardingScreen3 extends StatelessWidget {
                     height: 55,
                     child: ElevatedButton(
                       onPressed: () {
+                        // Onboarding complete hone par direct LoginScreen par navigation
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(

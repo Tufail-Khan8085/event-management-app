@@ -1,7 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:event/core/widgets/custom_event_card.dart';
 
-import '../../../core/widgets/custom_event_card.dart';
 
 class CalendarView extends StatelessWidget {
   const CalendarView({super.key});
@@ -110,10 +110,44 @@ class CalendarView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
+          Container(
+            height: 100,
+            width: double.infinity,
+            color: Colors.red,
+          ),
+
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection("my_calendar")
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              final events = snapshot.data!.docs;
+              print("Events Count = ${events.length}");
+
+              if (events.isEmpty) {
+                return const Text("No Events Found");
+              }
+
+              return Column(
+                children: events.map((event) {
+                  return CustomEventCard(
+                    documentId: event.id,
+                    title: event["title"] ?? "",
+                    date: event["date"] ?? "",
+                    time: event["time"] ?? "",
+                    location: event["location"] ?? "",
+                    detail: event["detail"] ?? "",
+                  );
+                }).toList(),
+              );
+            },
+          ),
 
           /// Temporary Event Card
-          const CustomEventCard(),
-          const CustomEventCard(),
         ],
       ),
     );

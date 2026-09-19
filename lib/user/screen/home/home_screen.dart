@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:event/core/constants/app_images.dart';
+import 'package:intl/intl.dart';
 import '../../../core/widgets/filter_dailog.dart';
 import '../../../core/widgets/custom_event_card.dart';
 import '../../../core/widgets/custom_bottom_nav.dart';
+import '../../../screen/auth/login_screen.dart';
 import '../../../setting/settings_screen.dart';
 import '../favourite/favorite_screen.dart';
 import '../features/feature_screen.dart';
 import '../community/community_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,6 +21,21 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
+
+  Future<void> logout() async {
+    await FirebaseAuth.instance.signOut();
+    await GoogleSignIn().signOut();
+
+    if (!mounted) return;
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const LoginScreen(),
+      ),
+          (route) => false,
+    );
+  }
 
   final List<Widget> _screens = [
     const HomeContentView(),
@@ -162,11 +181,50 @@ class HomeContentView extends StatelessWidget {
                   child: TabBarView(
                     children: [
                       const CalendarView(),
-                      ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                        itemCount: 4,
-                        itemBuilder: (context, index) => const CustomEventCard(),
-                      ),
+                      StreamBuilder<QuerySnapshot>(
+                        stream: FirebaseFirestore.instance
+                            .collection("events")
+                            .orderBy("createdAt", descending: true)
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasError) {
+                            return const Center(
+                              child: Text("Something went wrong"),
+                            );
+                          }
+
+                          if (!snapshot.hasData) {
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          }
+
+                          final events = snapshot.data!.docs;
+
+                          if (events.isEmpty) {
+                            return const Center(
+                              child: Text("No Events Found"),
+                            );
+                          }
+
+                          return ListView.builder(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            itemCount: events.length,
+                            itemBuilder: (context, index) {
+                              final event = events[index];
+
+                              return CustomEventCard(
+                                documentId: event.id,
+                                title: event["title"] ?? "",
+                                date: event["date"] ?? "",
+                                time: event["time"] ?? "",
+                                location: event["location"] ?? "",
+                                detail: event["detail"] ?? "",
+                              );
+                            },
+                          );
+                        },
+                      )
                     ],
                   ),
                 ),
@@ -344,21 +402,60 @@ class CalendarView extends StatelessWidget {
 
           const SizedBox(height: 20),
 
-          Text(
-            "Today Events",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : Colors.black,
-            ),
+      Text(
+        "Today Events",
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: isDark ? Colors.white : Colors.black,
+        ),
+      ),
+
+      const SizedBox(height: 10),
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection("events")
+                .orderBy("createdAt", descending: true)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+
+              final today = DateFormat('dd/MM/yyyy').format(DateTime.now());
+
+              final todayEvents = snapshot.data!.docs.where((event) {
+                return event["date"] == today;
+              }).toList();
+
+              if (todayEvents.isEmpty) {
+                return const Padding(
+                  padding: EdgeInsets.only(top: 10),
+                  child: Text(
+                    "No Events Today",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                );
+              }
+
+              return Column(
+                children: todayEvents.map((event) {
+                  return CustomEventCard(
+                    documentId: event.id,
+                    title: event["title"] ?? "",
+                    date: event["date"] ?? "",
+                    time: event["time"] ?? "",
+                    location: event["location"] ?? "",
+                    detail: event["detail"] ?? "",
+                  );
+                }).toList(),
+              );
+            },
           ),
 
-          const SizedBox(height: 10),
-
-          const CustomEventCard(),
-          const CustomEventCard(),
-
-          const SizedBox(height: 20),
+      const SizedBox(height: 20),
         ],
       ),
     );

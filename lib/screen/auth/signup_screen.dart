@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
-import '../../core/widgets/custom_event_card.dart';
 import '../../user/screen/home/home_screen.dart';
-import '../home/main_navigation_screen.dart'; // Apni main/home screen ki file yahan import karein
 import 'login_screen.dart';
-import '../events/events_screen.dart'; // Apni event screen file ka sahi path yahan likhein
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -18,6 +17,58 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
   TextEditingController();
+  Future<void> signUp() async {
+    if (passwordController.text.trim() !=
+        confirmPasswordController.text.trim()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Passwords do not match"),
+        ),
+      );
+      return;
+    }
+
+    try {
+      UserCredential userCredential =
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+      print("Before Firestore");
+      print("UID: ${userCredential.user!.uid}");
+      await FirebaseFirestore.instance
+          .collection("users")
+          .doc(userCredential.user!.uid)
+          .set({
+        "uid": userCredential.user!.uid,
+        "email": emailController.text.trim(),
+        "name": "",
+        "phone": "",
+        "photoUrl": "",
+        "createdAt": FieldValue.serverTimestamp(),
+      });
+      print("After Firestore");
+      print("User saved in users collection");
+      await FirebaseFirestore.instance.collection("test").add({
+        "message": "Hello Firestore",
+      });
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const LoginScreen(),
+        ),
+      );
+    } catch (e) {
+      print("ERROR: $e");
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+        ),
+      );
+    }
+  }
 
   bool obscurePassword = true;
   bool obscureConfirmPassword = true;
@@ -72,7 +123,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   const SizedBox(height: 11),
                   const Text(
-                    "Enter given detail to create your account",
+                    "Enter given detail to create your \n account",
                     style: TextStyle(
                       fontSize: 13,
                       color: AppColors.grey,
@@ -218,14 +269,8 @@ class _SignupScreenState extends State<SignupScreen> {
                     width: double.infinity,
                     height: 55,
                     child: ElevatedButton(
-                      onPressed: () {
-                        // Direct navigation to Main Navigation / Home Screen
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const HomeScreen(),
-                          ),
-                        );
+                      onPressed: () async {
+                        await signUp();
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
@@ -246,57 +291,48 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
 
                   const SizedBox(height: 40),
-                  Row(
-                    children: [
-                      const Expanded(
-                        child: Divider(
-                          thickness: 1,
-                          color: AppColors.grey,
-                        ),
+                  Center(
+                    child: Text(
+                      "OR",
+                      style: TextStyle(
+                        color: isDark ? AppColors.white : AppColors.black,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
                       ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 10),
-                        child: Text(
-                          "OR",
-                          style: TextStyle(
-                            color: AppColors.grey,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      const Expanded(
-                        child: Divider(
-                          thickness: 1,
-                          color: AppColors.grey,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                   const SizedBox(height: 20),
                   SizedBox(
                     width: double.infinity,
                     height: 55,
-                    child: OutlinedButton.icon(
+                    child: OutlinedButton(
                       onPressed: () {},
-                      icon: Image.asset(
-                        "assets/images/devicon_google (1).png",
-                        width: 24,
-                        height: 24,
-                      ),
-                      label: Text(
-                        "Continue with Google",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: isDark ? AppColors.white : AppColors.black,
-                        ),
-                      ),
                       style: OutlinedButton.styleFrom(
-                        backgroundColor: isDark ? AppColors.darkCard : AppColors.white,
-                        side: const BorderSide(color: AppColors.grey),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
+                      shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5),
+                     ),
+                     ),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Image.asset(
+                              "assets/images/devicon_google (1).png",
+                              width: 24,
+                              height: 24,
+                            ),
+                          ),
+
+                          Text(
+                            "Continue with Google",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? AppColors.white : AppColors.black,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -305,9 +341,9 @@ class _SignupScreenState extends State<SignupScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text(
-                        "Already have an account? ",
+                        "if you have an  acoount ",
                         style: TextStyle(
-                          color: AppColors.grey,
+                          color: AppColors.black,
                           fontSize: 15,
                         ),
                       ),

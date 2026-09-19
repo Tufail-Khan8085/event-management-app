@@ -4,7 +4,12 @@ import '../auth/login_screen.dart';
 import 'onboarding3_screen.dart';
 
 class OnboardingScreen2 extends StatelessWidget {
-  const OnboardingScreen2({super.key});
+  final PageController? pageController; // Nullable (Optional) banaya
+
+  const OnboardingScreen2({
+    super.key,
+    this.pageController, // required hata diya
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +25,7 @@ class OnboardingScreen2 extends StatelessWidget {
             child: Opacity(
               opacity: isDark ? 0.05 : 1.0,
               child: Image.asset(
-                'assets/images/my_bg.png', // <-- Background image path
+                'assets/images/my_bg.png',
                 fit: BoxFit.cover,
               ),
             ),
@@ -55,38 +60,51 @@ class OnboardingScreen2 extends StatelessWidget {
                 const SizedBox(height: 20),
 
                 // Main Onboarding 2 Image
-                Image.asset(
-                  'assets/images/Calendar (1).png', // <-- Main picture path
-                  width: 320,
-                  height: 280,
-                  fit: BoxFit.contain,
+                Center(
+                  child: Transform.translate(
+                    offset: const Offset(0, 20),
+                    child: Image.asset(
+                      'assets/images/Calendar (1).png',
+                      width: 389,
+                      height: 270.23,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
                 ),
 
                 const SizedBox(height: 25),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 30),
-                  child: Text(
-                    "Events Sync \nAutomatically",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? AppColors.white : AppColors.black,
-                      height: 1.2,
+                Transform.translate(
+                  offset: const Offset(0, 50),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 30),
+                    child: Text(
+                      "Events Sync \nAutomatically",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? AppColors.white : AppColors.black,
+                        height: 1.2,
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 18),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 35),
-                  child: Text(
-                    "No manual setup — we integrate directly with group calendars for real-time updates.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: isDark ? AppColors.white.withOpacity(0.7) : AppColors.grey,
-                      height: 1.5,
-                      fontWeight: FontWeight.w400,
+                Transform.translate(
+                  offset: const Offset(0, 50),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 35),
+                    child: Text(
+                      "No manual setup — we integrate directly with group calendars for real-time updates.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: isDark
+                            ? AppColors.white.withOpacity(0.7)
+                            : AppColors.grey,
+                        height: 1.5,
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
                   ),
                 ),
@@ -130,10 +148,19 @@ class OnboardingScreen2 extends StatelessWidget {
                     height: 55,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const OnboardingScreen3()),
-                        );
+                        if (pageController != null) {
+                          pageController!.nextPage(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const OnboardingScreen3(),
+                            ),
+                          );
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,

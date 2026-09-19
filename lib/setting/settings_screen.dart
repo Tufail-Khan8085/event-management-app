@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import '../core/constants/app_colors.dart';
 import '../screen/auth/login_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'edit_profile_screen.dart';
 import 'notifications_screen.dart';
 import 'placeholder_screens.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -13,7 +15,30 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+
+  final User? user = FirebaseAuth.instance.currentUser;
+  String userName = "User";
+  Future<void> loadUserName() async {
+    if (user == null) return;
+
+    final doc = await FirebaseFirestore.instance
+        .collection("users")
+        .doc(user!.uid)
+        .get();
+
+    if (doc.exists) {
+      setState(() {
+        userName = doc["name"] ?? "User";
+      });
+    }
+  }
+
   bool isDarkMode = false;
+  @override
+  void initState() {
+    super.initState();
+    loadUserName();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +91,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    "Morgan mill",
+                    userName,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -75,7 +100,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    "example23@gmail.com",
+                    user?.email ?? "No Email",
                     style: TextStyle(
                       fontSize: 13,
                       color: isDarkMode ? Colors.white54 : Colors.grey.shade600,
@@ -246,8 +271,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       child: SizedBox(
                         height: 46,
                         child: ElevatedButton(
-                          onPressed: () {
+                          onPressed: () async {
                             Navigator.pop(context);
+
+                            await FirebaseAuth.instance.signOut();
+                            await GoogleSignIn().signOut();
+
                             Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(
